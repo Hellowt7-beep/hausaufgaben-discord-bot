@@ -1,0 +1,34 @@
+# Environment Variables (enthalten API Keys!)
+.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.temp/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test Files
+test-output/
+coverage/
+
+# Deployment
+dist/
+build/

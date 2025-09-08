@@ -1,0 +1,26 @@
+{
+  "name": "hausaufgaben-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot für Hausaufgaben und Lösungen",
+  "main": "src/bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "node --watch src/bot.js",
+    "test": "node test-setup.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "@google/generative-ai": "^0.15.0",
+    "megajs": "^1.2.1",
+    "tesseract.js": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": ["discord", "bot", "hausaufgaben", "ocr"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
