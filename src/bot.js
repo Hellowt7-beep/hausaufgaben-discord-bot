@@ -2,8 +2,32 @@ import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
 import { config } from 'dotenv';
 import { analyzeHomework } from './homework-analyzer.js';
 import { solveProblem, solveProblemWithImage } from './problem-solver.js';
+import express from 'express';
 
 config();
+
+// Express Server für Health Check
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Health Check Endpoint
+app.get('/', (req, res) => {
+    res.json({
+        status: 'Bot is running!',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        botStatus: client.user ? 'Connected' : 'Connecting...'
+    });
+});
+
+app.get('/ping', (req, res) => {
+    res.json({ pong: true, timestamp: Date.now() });
+});
+
+// Server starten
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🌐 Health Check Server läuft auf Port ${PORT}`);
+});
 
 const client = new Client({
     intents: [
