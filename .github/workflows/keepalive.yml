@@ -1,0 +1,23 @@
+name: Keepalive
+on:
+  schedule:
+    # Alle 10 Minuten - läuft unendlich bis manuell gestoppt
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Manuell auslösbar
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Ping Render Service
+      run: |
+        # Ping an dein Render Service
+        curl -f https://hausaufgaben-discord-bot.onrender.com/ping || exit 1
+        echo "✅ Keepalive ping erfolgreich gesendet"
+        
+    - name: Log Status
+      run: |
+        echo "🕒 Keepalive ausgeführt um: $(date)"
+        echo "🔄 Nächster Ping in 10 Minuten"
+        echo "⏰ Workflow läuft kontinuierlich - stoppe manuell wenn gewünscht"
