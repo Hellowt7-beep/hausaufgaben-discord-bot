@@ -1,28 +1,18 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Storage } from 'megajs';
-<<<<<<< HEAD
 import { config } from 'dotenv';
 import { performOCR, performOCRWithRetry } from './ocr-service.js';
 
-=======
-import Tesseract from 'tesseract.js';
-import { config } from 'dotenv';
-
-// Stelle sicher, dass .env geladen wird
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 config();
 
 let megaStorage = null;
 
-<<<<<<< HEAD
 // Verfügbare Fächer
 const SUPPORTED_SUBJECTS = [
     'deutsch', 'mathe', 'english', 'französisch', 'franzoesisch', 'fr',
     'latein', 'geschichte', 'physik', 'chemie', 'religion ev', 'religion kt', 'ethik'
 ];
 
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 async function connectToMega() {
     if (megaStorage) return megaStorage;
 
@@ -31,26 +21,19 @@ async function connectToMega() {
             throw new Error('MEGA Login-Daten fehlen in .env Datei');
         }
 
-<<<<<<< HEAD
         console.log('🔗 Verbinde mit MEGA...');
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         megaStorage = new Storage({
             email: process.env.MEGA_EMAIL,
             password: process.env.MEGA_PASSWORD
         });
         await megaStorage.ready;
-<<<<<<< HEAD
         console.log('✅ MEGA Verbindung erfolgreich');
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         return megaStorage;
     } catch (error) {
         throw new Error('MEGA Verbindung fehlgeschlagen. Prüfe deine Login-Daten.');
     }
 }
 
-<<<<<<< HEAD
 export async function findBookPage(fach, seiteNummer) {
     const storage = await connectToMega();
 
@@ -70,33 +53,18 @@ export async function findBookPage(fach, seiteNummer) {
     ];
 
     console.log(`🔍 Suche nach Buchseite: ${patterns.join(' oder ')}`);
-=======
-async function findBookPage(fach, seiteNummer) {
-    const storage = await connectToMega();
-
-    // Suche nach Datei mit Pattern: fach_seite_nummer
-    const fileName = `${fach}_seite_${seiteNummer}`;
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
     // Durchsuche alle Dateien
     const files = storage.files;
     const foundFile = Object.values(files).find(file => {
         const name = file.name?.toLowerCase();
-<<<<<<< HEAD
         return name && patterns.some(pattern =>
             name.includes(pattern.toLowerCase()) &&
             (name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.pdf'))
-=======
-        return name && (
-            name.includes(fileName.toLowerCase()) ||
-            name.includes(`${fach.toLowerCase()}_${seiteNummer}`) ||
-            name.includes(`${fach.toLowerCase()}_seite_${seiteNummer}`)
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         );
     });
 
     if (!foundFile) {
-<<<<<<< HEAD
         throw new Error(`Datei nicht gefunden für: ${fach} Seite ${seiteNummer}
 
 Erwartete Dateiformate:
@@ -156,30 +124,12 @@ export async function downloadAndProcessImage(file) {
 
         // Verwende verbesserten OCR Service mit Retry-Logic
         const text = await performOCRWithRetry(data, 2);
-=======
-        throw new Error(`Datei nicht gefunden: ${fileName}(.jpg/.png/.pdf)`);
-    }
-
-    return foundFile;
-}
-
-async function downloadAndProcessImage(file) {
-    try {
-        // Datei als Buffer herunterladen
-        const data = await file.downloadBuffer();
-
-        // OCR auf dem Bild
-        const { data: { text } } = await Tesseract.recognize(data, 'deu+eng');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
         if (!text.trim()) {
             throw new Error('Kein Text in der Datei gefunden');
         }
 
-<<<<<<< HEAD
         console.log('✅ Text erfolgreich extrahiert');
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         return text;
 
     } catch (error) {
@@ -189,10 +139,7 @@ async function downloadAndProcessImage(file) {
 
 export async function findHomeworkInMega() {
     try {
-<<<<<<< HEAD
         console.log('🔍 Suche ha.jpg in MEGA...');
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         const storage = await connectToMega();
 
         // Durchsuche alle Dateien nach ha.jpg
@@ -210,19 +157,12 @@ export async function findHomeworkInMega() {
             throw new Error('Keine ha.jpg in MEGA gefunden');
         }
 
-<<<<<<< HEAD
         console.log(`📋 Hausaufgaben-Bild gefunden: ${foundFile.name}`);
 
         // Lade die Datei direkt als Buffer herunter
         const imageBuffer = await foundFile.downloadBuffer();
 
         // Erstelle einen data URL für die weitere Verarbeitung
-=======
-        // Lade die Datei direkt als Buffer herunter
-        const imageBuffer = await foundFile.downloadBuffer();
-
-        // Erstelle einen data URL für Tesseract
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         const base64 = imageBuffer.toString('base64');
         const dataUrl = `data:image/jpeg;base64,${base64}`;
         return dataUrl;
@@ -254,37 +194,9 @@ export async function solveProblem(fach, seiteNummer) {
         // Sende an Gemini zur Lösungsfindung
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-<<<<<<< HEAD
         const prompt = createSolutionPrompt(fach, seiteNummer, extractedText);
 
         console.log('🤖 Generiere Lösungen...');
-=======
-        const prompt = `
-Du bist ein sehr hilfsbereiter Nachhilfe-Assistent. Analysiere den folgenden Text aus einem Schulbuch für das Fach "${fach}" und löse alle Aufgaben, die du findest.
-
-Text von Seite ${seiteNummer}:
-${extractedText}
-
-Aufgabe:
-1. Identifiziere alle Übungen, Aufgaben und Fragen auf dieser Seite
-2. Löse sie Schritt für Schritt
-3. Erkläre deine Lösungswege verständlich
-4. Bei Mathe: Zeige alle Rechenschritte
-5. Bei Sprachen: Gib Übersetzungen und Erklärungen
-6. Bei anderen Fächern: Gib ausführliche, korrekte Antworten
-
-Format deine Antwort strukturiert:
-
-## Aufgabe 1: [Aufgabe]
-**Lösung:** [Schritt-für-Schritt Lösung]
-
-## Aufgabe 2: [Aufgabe]
-**Lösung:** [Schritt-für-Schritt Lösung]
-
-Falls keine klaren Aufgaben erkennbar sind, fasse den Inhalt zusammen und gib Lernhilfen.
-`;
-
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         const result = await model.generateContent(prompt);
         const geminiResponse = await result.response;
         return geminiResponse.text();
@@ -316,7 +228,6 @@ export async function solveProblemWithImage(fach, seiteNummer) {
 
         // Führe OCR durch für die Textanalyse
         console.log('🔤 Führe OCR durch...');
-<<<<<<< HEAD
 
         let text = '';
         try {
@@ -327,9 +238,6 @@ export async function solveProblemWithImage(fach, seiteNummer) {
             // Fallback: Verwende Gemini Vision für direkte Bildanalyse
             text = await analyzeImageWithGeminiVision(imageBuffer, genAI);
         }
-=======
-        const { data: { text } } = await Tesseract.recognize(imageBuffer, 'deu+eng');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
         if (!text.trim()) {
             throw new Error('Kein Text in der Datei gefunden');
@@ -340,34 +248,7 @@ export async function solveProblemWithImage(fach, seiteNummer) {
         // Sende an Gemini zur Lösungsfindung
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-<<<<<<< HEAD
         const prompt = createSolutionPrompt(fach, seiteNummer, text);
-=======
-        const prompt = `
-Du bist ein sehr hilfsbereiter Nachhilfe-Assistent. Analysiere den folgenden Text aus einem Schulbuch für das Fach "${fach}" und löse alle Aufgaben, die du findest.
-
-Text von Seite ${seiteNummer}:
-${text}
-
-Aufgabe:
-1. Identifiziere alle Übungen, Aufgaben und Fragen auf dieser Seite
-2. Löse sie Schritt für Schritt
-3. Erkläre deine Lösungswege verständlich
-4. Bei Mathe: Zeige alle Rechenschritte
-5. Bei Sprachen (Deutsch, English, Latein, Französisch): Gib Übersetzungen und Erklärungen
-6. Bei anderen Fächern: Gib ausführliche, korrekte Antworten
-
-Format deine Antwort strukturiert:
-
-## Aufgabe 1: [Aufgabe]
-**Lösung:** [Schritt-für-Schritt Lösung]
-
-## Aufgabe 2: [Aufgabe]
-**Lösung:** [Schritt-für-Schritt Lösung]
-
-Falls keine klaren Aufgaben erkennbar sind, fasse den Inhalt zusammen und gib Lernhilfen.
-`;
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
         const result = await model.generateContent(prompt);
         const geminiResponse = await result.response;
@@ -383,7 +264,6 @@ Falls keine klaren Aufgaben erkennbar sind, fasse den Inhalt zusammen und gib Le
         throw error;
     }
 }
-<<<<<<< HEAD
 
 // Gemini Vision Fallback für OCR
 async function analyzeImageWithGeminiVision(imageBuffer, genAI) {
@@ -594,5 +474,4 @@ Allgemeine Anweisungen:
 - Motiviere zum Lernen`;
     }
 }
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
+
