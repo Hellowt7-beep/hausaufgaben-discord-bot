@@ -1,9 +1,6 @@
 import fetch from 'node-fetch';
 import { config } from 'dotenv';
-<<<<<<< HEAD
 import sharp from 'sharp';
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
 config();
 
@@ -13,7 +10,6 @@ export async function performOCR(imageBuffer) {
 
         if (!apiKey || apiKey === 'helloworld') {
             console.log('⚠️  OCR.space API Key nicht gesetzt, verwende Fallback OCR...');
-<<<<<<< HEAD
             return await performFallbackOCR(imageBuffer);
         }
 
@@ -24,14 +20,6 @@ export async function performOCR(imageBuffer) {
 
         // Konvertiere Buffer zu Base64
         const base64Image = optimizedBuffer.toString('base64');
-=======
-            // Fallback zu einer einfachen Texterkennung
-            return await fallbackOCR(imageBuffer);
-        }
-
-        // Konvertiere Buffer zu Base64
-        const base64Image = imageBuffer.toString('base64');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
         const formData = new URLSearchParams();
         formData.append('apikey', apiKey);
@@ -41,22 +29,15 @@ export async function performOCR(imageBuffer) {
         formData.append('detectOrientation', 'true');
         formData.append('scale', 'true');
         formData.append('OCREngine', '2'); // Engine 2 ist oft besser
-<<<<<<< HEAD
         formData.append('isTable', 'true'); // Bessere Tabellenerkennung
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
         const response = await fetch('https://api.ocr.space/parse/image', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-<<<<<<< HEAD
             body: formData,
             timeout: 30000 // 30 Sekunden Timeout
-=======
-            body: formData
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         });
 
         const result = await response.json();
@@ -72,7 +53,6 @@ export async function performOCR(imageBuffer) {
     } catch (error) {
         console.error('❌ OCR.space Fehler:', error.message);
         console.log('🔄 Verwende Fallback OCR...');
-<<<<<<< HEAD
         return await performFallbackOCR(imageBuffer);
     }
 }
@@ -247,31 +227,5 @@ export async function performOCRWithRetry(imageBuffer, maxRetries = 2) {
             // Warte zwischen Versuchen
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
-=======
-        return await fallbackOCR(imageBuffer);
-    }
-}
-
-async function fallbackOCR(imageBuffer) {
-    try {
-        // Dynamischer Import von Tesseract als Fallback
-        const Tesseract = await import('tesseract.js');
-        const { data: { text } } = await Tesseract.default.recognize(imageBuffer, 'deu+eng');
-        console.log('✅ Fallback OCR (Tesseract) erfolgreich');
-        return text;
-    } catch (fallbackError) {
-        throw new Error('Sowohl OCR.space als auch Fallback OCR fehlgeschlagen');
-    }
-}
-
-// Utility Funktion für URL-basierte OCR
-export async function performOCRFromURL(imageUrl) {
-    try {
-        const response = await fetch(imageUrl);
-        const imageBuffer = await response.arrayBuffer();
-        return await performOCR(Buffer.from(imageBuffer));
-    } catch (error) {
-        throw new Error(`Fehler beim Laden des Bildes: ${error.message}`);
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
     }
 }
