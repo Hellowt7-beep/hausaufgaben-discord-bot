@@ -1,12 +1,8 @@
 import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
 import { config } from 'dotenv';
 import { analyzeHomework } from './homework-analyzer.js';
-<<<<<<< HEAD
 import { solveProblemWithImage, getMaterialWithImages } from './problem-solver.js';
 import { chatWithAI, getHomeworkHelp } from './ai-chat.js';
-=======
-import { solveProblem, solveProblemWithImage } from './problem-solver.js';
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 import express from 'express';
 
 config();
@@ -18,16 +14,11 @@ const PORT = process.env.PORT || 3000;
 // Health Check Endpoint
 app.get('/', (req, res) => {
     res.json({
-        status: 'Bot is running!',
+        status: 'Improved Bot is running!',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
-<<<<<<< HEAD
         botStatus: client.user ? 'Connected' : 'Connecting...',
-        processedMessages: processedMessages.size,
-        activeCommands: activeCommands.size
-=======
-        botStatus: client.user ? 'Connected' : 'Connecting...'
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
+        features: ['No Message Editing', 'Bot Command Reactions', 'All Dot Commands']
     });
 });
 
@@ -49,52 +40,9 @@ const client = new Client({
     ]
 });
 
-<<<<<<< HEAD
-// IMPROVED: Duplicate Prevention & Rate Limiting
-const processedMessages = new Map(); // Message ID -> timestamp
-const activeCommands = new Map(); // User ID -> command info
+// IMPROVED: Rate Limiting (aber keine Duplicate Prevention mehr)
 const userCooldowns = new Map(); // User ID -> last command timestamp
-
-const COOLDOWN_MS = 3000; // 3 Sekunden zwischen Commands
-const MESSAGE_CACHE_MS = 30000; // 30 Sekunden Message Cache
-const MAX_ACTIVE_COMMANDS = 3; // Max gleichzeitige Commands
-
-// Bot Ready Event
-=======
-// FIX: Verwende clientReady statt ready (Discord.js v14 deprecation)
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
-client.once('clientReady', () => {
-    console.log(`🤖 Bot ist online als ${client.user.tag}!`);
-    console.log(`📚 Bereit für Hausaufgaben-Hilfe!`);
-
-    // API Keys prüfen
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
-        console.log('⚠️  WARNUNG: GEMINI_API_KEY nicht gesetzt!');
-    }
-    if (!process.env.MEGA_EMAIL || !process.env.MEGA_PASSWORD) {
-        console.log('⚠️  WARNUNG: MEGA Login-Daten nicht gesetzt!');
-    }
-<<<<<<< HEAD
-
-    // Cleanup Timer für Maps
-    setInterval(() => {
-        const now = Date.now();
-
-        // Cleanup processed messages
-        for (const [messageId, timestamp] of processedMessages) {
-            if (now - timestamp > MESSAGE_CACHE_MS) {
-                processedMessages.delete(messageId);
-            }
-        }
-
-        // Cleanup active commands (timeout after 2 minutes)
-        for (const [userId, commandInfo] of activeCommands) {
-            if (now - commandInfo.timestamp > 120000) {
-                activeCommands.delete(userId);
-            }
-        }
-    }, 10000); // Cleanup alle 10 Sekunden
-});
+const COOLDOWN_MS = 2000; // 2 Sekunden zwischen Commands
 
 // Fach-Emoji Mapping
 const SUBJECT_EMOJIS = {
@@ -119,40 +67,41 @@ const AVAILABLE_SUBJECTS = [
     'geschichte', 'physik', 'chemie', 'religion ev', 'religion kt', 'ethik'
 ];
 
-=======
+// Bot Ready Event
+client.once('clientReady', () => {
+    console.log(`🤖 Improved Bot ist online als ${client.user.tag}!`);
+    console.log(`📚 Bereit für Hausaufgaben-Hilfe!`);
+    console.log(`🤝 Reagiert auf ALLE . Commands (auch von Bots)!`);
+    console.log(`✨ KEINE Message-Edits - nur neue Nachrichten!`);
+
+    // API Keys prüfen
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+        console.log('⚠️  WARNUNG: GEMINI_API_KEY nicht gesetzt!');
+    }
+    if (!process.env.MEGA_EMAIL || !process.env.MEGA_PASSWORD) {
+        console.log('⚠️  WARNUNG: MEGA Login-Daten nicht gesetzt!');
+    }
+
+    // Cleanup Timer für Maps
+    setInterval(() => {
+        const now = Date.now();
+        // Cleanup user cooldowns (nach 5 Minuten)
+        for (const [userId, timestamp] of userCooldowns) {
+            if (now - timestamp > 300000) {
+                userCooldowns.delete(userId);
+            }
+        }
+    }, 60000); // Cleanup alle 60 Sekunden
 });
 
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 client.on('messageCreate', async (message) => {
-    // Ignoriere Bot-Nachrichten
-    if (message.author.bot) return;
+    // WICHTIGE ÄNDERUNG: Reagiere auf ALLE . Commands, auch von Bots!
+    // Aber ignoriere eigene Nachrichten
+    if (message.author.id === client.user.id) return;
 
-<<<<<<< HEAD
-    const messageId = message.id;
     const userId = message.author.id;
     const now = Date.now();
 
-    // IMPROVED: Duplicate Prevention
-    if (processedMessages.has(messageId)) {
-        console.log(`⚠️  Message ${messageId} bereits verarbeitet, überspringe...`);
-        return;
-    }
-
-    // IMPROVED: Rate Limiting
-    const lastCommand = userCooldowns.get(userId);
-    if (lastCommand && (now - lastCommand) < COOLDOWN_MS) {
-        console.log(`⚠️  User ${userId} in Cooldown, überspringe...`);
-        return;
-    }
-
-    // IMPROVED: Active Command Limiting
-    if (activeCommands.size >= MAX_ACTIVE_COMMANDS) {
-        console.log('⚠️  Zu viele aktive Commands, überspringe...');
-        return;
-    }
-
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
     // Prüfe ob in erlaubtem Kanal (falls konfiguriert)
     if (process.env.ALLOWED_CHANNEL_ID && message.channel.id !== process.env.ALLOWED_CHANNEL_ID) {
         return;
@@ -160,7 +109,16 @@ client.on('messageCreate', async (message) => {
 
     const content = message.content.toLowerCase().trim();
 
-<<<<<<< HEAD
+    // NEUE LOGIK: Reagiere auf ALLE . Commands (von Menschen UND Bots)
+    if (!content.startsWith('.')) return;
+
+    // Rate Limiting (weniger streng als vorher)
+    const lastCommand = userCooldowns.get(userId);
+    if (lastCommand && (now - lastCommand) < COOLDOWN_MS) {
+        console.log(`⏳ User/Bot ${message.author.tag} in Cooldown, überspringe...`);
+        return;
+    }
+
     // Prüfe ob es ein gültiger Command ist
     const isValidCommand = content === '.ha' ||
                           content.startsWith('.lsg ') ||
@@ -170,21 +128,19 @@ client.on('messageCreate', async (message) => {
                           content === '.help' ||
                           content === '.hilfe';
 
-    if (!isValidCommand) return;
+    if (!isValidCommand) {
+        console.log(`🤷 Unbekannter . Command: ${content} von ${message.author.tag} (${message.author.bot ? 'Bot' : 'User'})`);
+        return;
+    }
 
-    // Markiere Message als verarbeitet
-    processedMessages.set(messageId, now);
+    // Setze Cooldown
     userCooldowns.set(userId, now);
 
-    // Markiere Command als aktiv
-    activeCommands.set(userId, {
-        command: content.split(' ')[0],
-        timestamp: now,
-        messageId: messageId
-    });
+    // Log für Debugging
+    console.log(`🎯 Verarbeite Command: ${content} von ${message.author.tag} (${message.author.bot ? 'Bot' : 'User'})`);
 
     try {
-        // Command Router
+        // Command Router - KEINE Message-Edits, nur neue Nachrichten!
         if (content === '.ha') {
             await handleHomeworkCommand(message);
         }
@@ -207,7 +163,7 @@ client.on('messageCreate', async (message) => {
     } catch (error) {
         console.error('Fehler beim Verarbeiten der Nachricht:', error);
 
-        // Bessere Error Messages
+        // Bessere Error Messages - NEUE Nachricht statt Edit
         let errorMsg = '❌ Ein Fehler ist aufgetreten.';
 
         if (error.message.includes('API')) {
@@ -219,38 +175,12 @@ client.on('messageCreate', async (message) => {
         }
 
         await message.reply(errorMsg);
-    } finally {
-        // Command als beendet markieren
-        activeCommands.delete(userId);
-=======
-    try {
-        // .ha Command - Hausaufgaben analysieren
-        if (content === '.ha') {
-            await handleHomeworkCommand(message);
-        }
-
-        // .lsg Command - Lösungen finden
-        else if (content.startsWith('.lsg ')) {
-            await handleSolutionCommand(message, content);
-        }
-
-        // .help Command - Hilfe anzeigen
-        else if (content === '.help' || content === '.hilfe') {
-            await showHelp(message);
-        }
-    } catch (error) {
-        console.error('Fehler beim Verarbeiten der Nachricht:', error);
-        await message.reply('❌ Ein Fehler ist aufgetreten. Versuche es nochmal!');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
     }
 });
 
 async function handleHomeworkCommand(message) {
-<<<<<<< HEAD
-    const waitMsg = await message.reply('⏳ Analysiere Hausaufgaben...');
-=======
-    await message.reply('⏳ Bitte warten...');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
+    // KEINE waitMsg mehr - direkt loslegen
+    await message.reply('⏳ Analysiere Hausaufgaben...');
 
     try {
         // Zuerst im Discord Chat suchen
@@ -282,37 +212,24 @@ async function handleHomeworkCommand(message) {
                 const megaImageUrl = await findHomeworkInMega();
                 imageUrl = megaImageUrl;
             } catch (megaError) {
-<<<<<<< HEAD
-                await waitMsg.edit('❌ Keine ha.jpg gefunden! Lade ein Bild mit "ha" im Namen in Discord hoch oder speichere ha.jpg in MEGA.');
-=======
                 await message.reply('❌ Keine ha.jpg gefunden! Lade ein Bild mit "ha" im Namen in Discord hoch oder speichere ha.jpg in MEGA.');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
                 return;
             }
         }
 
         const result = await analyzeHomework(imageUrl);
-<<<<<<< HEAD
         const formattedResult = formatHomeworkResult(result);
 
-        await waitMsg.edit(`📝 **Hausaufgaben gefunden:**\n\n${formattedResult}`);
-
-    } catch (error) {
-        console.error('Fehler bei Hausaufgaben-Analyse:', error);
-        await waitMsg.edit(`❌ Fehler beim Analysieren der Hausaufgaben: ${error.message}`);
-=======
-
-        await message.reply(`📝 **Hausaufgaben gefunden:**\n\`\`\`\n${result}\n\`\`\``);
+        // NEUE Nachricht statt Edit
+        await message.reply(`📝 **Hausaufgaben gefunden:**\n\n${formattedResult}`);
 
     } catch (error) {
         console.error('Fehler bei Hausaufgaben-Analyse:', error);
         await message.reply(`❌ Fehler beim Analysieren der Hausaufgaben: ${error.message}`);
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
     }
 }
 
 async function handleSolutionCommand(message, content) {
-<<<<<<< HEAD
     const parts = content.split(' ').slice(1);
 
     if (parts.length < 3) {
@@ -325,24 +242,14 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 • \`.lsg deutsch seite 1\`
 • \`.lsg mathe seite 42\`
 • \`.lsg latein seite 15\``);
-=======
-    // Parse ".lsg deutsch seite 1" -> fach: "deutsch", seite: "1"
-    const parts = content.split(' ').slice(1); // Entferne ".lsg"
-
-    if (parts.length < 3) {
-        await message.reply('❌ Format: `.lsg [fach] seite [nummer]`\nBeispiele:\n• `.lsg deutsch seite 1`\n• `.lsg mathe seite 42`\n• `.lsg latein seite 15`\n• `.lsg französisch seite 8`');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
         return;
     }
 
     const fach = parts[0];
     const seiteNummer = parts[2];
 
-<<<<<<< HEAD
-    const waitMsg = await message.reply('⏳ Lade Buchseite...');
-=======
-    await message.reply('⏳ Suche Lösung und lade Originalbild...');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
+    // KEINE waitMsg - direkt Feedback geben
+    await message.reply('⏳ Lade Buchseite und generiere Lösung...');
 
     try {
         const result = await solveProblemWithImage(fach, seiteNummer);
@@ -350,7 +257,6 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
         // 1. Erst das Originalbild senden
         const imageAttachment = new AttachmentBuilder(result.imageBuffer, { name: result.fileName });
         await message.reply({
-<<<<<<< HEAD
             content: `📄 **Originalbild:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**`,
             files: [imageAttachment]
         });
@@ -369,11 +275,9 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
             await message.reply(formattedSolution);
         }
 
-        await waitMsg.delete().catch(() => {});
-
     } catch (error) {
         console.error('Fehler bei Lösungssuche:', error);
-        await waitMsg.edit(`❌ Fehler: ${error.message}`);
+        await message.reply(`❌ Fehler: ${error.message}`);
     }
 }
 
@@ -385,7 +289,8 @@ async function handleAIChat(message, content) {
         return;
     }
 
-    const waitMsg = await message.reply('⏳ Denke nach...');
+    // KEINE waitMsg - direkt Feedback
+    await message.reply('⏳ Denke nach...');
 
     try {
         const response = await chatWithAI(prompt);
@@ -394,17 +299,17 @@ async function handleAIChat(message, content) {
         if (formattedResponse.length > 2000) {
             const responseBuffer = Buffer.from(formattedResponse, 'utf-8');
             const responseAttachment = new AttachmentBuilder(responseBuffer, { name: 'ai_antwort.txt' });
-            await waitMsg.edit({
+            await message.reply({
                 content: '🤖 **Antwort zu lang, siehe Datei:**',
                 files: [responseAttachment]
             });
         } else {
-            await waitMsg.edit(formattedResponse);
+            await message.reply(formattedResponse);
         }
 
     } catch (error) {
         console.error('Fehler bei AI Chat:', error);
-        await waitMsg.edit(`❌ Fehler beim Chat: ${error.message}`);
+        await message.reply(`❌ Fehler beim Chat: ${error.message}`);
     }
 }
 
@@ -427,7 +332,8 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
     const seiteNummer = parts[2];
     const prompt = parts.slice(3).join(' ');
 
-    const waitMsg = await message.reply('⏳ Bereite Hilfe vor...');
+    // KEINE waitMsg
+    await message.reply('⏳ Bereite Hilfe vor...');
 
     try {
         const response = await getHomeworkHelp(fach, seiteNummer, prompt);
@@ -436,17 +342,17 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
         if (formattedResponse.length > 2000) {
             const responseBuffer = Buffer.from(formattedResponse, 'utf-8');
             const responseAttachment = new AttachmentBuilder(responseBuffer, { name: `hilfe_${fach}_seite_${seiteNummer}.txt` });
-            await waitMsg.edit({
+            await message.reply({
                 content: `🎓 **Hausaufgaben-Hilfe zu lang, siehe Datei:**`,
                 files: [responseAttachment]
             });
         } else {
-            await waitMsg.edit(formattedResponse);
+            await message.reply(formattedResponse);
         }
 
     } catch (error) {
         console.error('Fehler bei Hausaufgaben-Hilfe:', error);
-        await waitMsg.edit(`❌ Fehler: ${error.message}`);
+        await message.reply(`❌ Fehler: ${error.message}`);
     }
 }
 
@@ -468,17 +374,18 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
     const fach = parts[0];
     const seiteNummer = parts[2];
 
-    const waitMsg = await message.reply('⏳ Suche Material-Dateien...');
+    // KEINE waitMsg
+    await message.reply('⏳ Suche Material-Dateien...');
 
     try {
         const materialImages = await getMaterialWithImages(fach, seiteNummer);
 
         if (materialImages.length === 0) {
-            await waitMsg.edit(`❌ Keine Material-Dateien gefunden für: ${fach} Seite ${seiteNummer}`);
+            await message.reply(`❌ Keine Material-Dateien gefunden für: ${fach} Seite ${seiteNummer}`);
             return;
         }
 
-        await waitMsg.edit(`📚 **Material gefunden:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n${materialImages.length} Datei(en) werden gesendet...`);
+        await message.reply(`📚 **Material gefunden:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n${materialImages.length} Datei(en) werden gesendet...`);
 
         for (let i = 0; i < materialImages.length; i++) {
             const material = materialImages[i];
@@ -496,35 +403,12 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 
     } catch (error) {
         console.error('Fehler bei Material-Suche:', error);
-        await waitMsg.edit(`❌ Fehler: ${error.message}`);
-=======
-            content: `📄 **Originalbild: ${fach} Seite ${seiteNummer}**`,
-            files: [imageAttachment]
-        });
-
-        // 2. Dann die Lösung senden
-        if (result.solution.length > 2000) {
-            // Discord hat 2000 Zeichen Limit, bei längeren Texten als Datei senden
-            const solutionBuffer = Buffer.from(result.solution, 'utf-8');
-            const solutionAttachment = new AttachmentBuilder(solutionBuffer, { name: `loesung_${fach}_seite_${seiteNummer}.txt` });
-            await message.reply({
-                content: `🤖 **Gemini Lösung für ${fach} Seite ${seiteNummer}:**`,
-                files: [solutionAttachment]
-            });
-        } else {
-            await message.reply(`🤖 **Gemini Lösung für ${fach} Seite ${seiteNummer}:**\n\`\`\`\n${result.solution}\n\`\`\``);
-        }
-
-    } catch (error) {
-        console.error('Fehler bei Lösungssuche:', error);
         await message.reply(`❌ Fehler: ${error.message}`);
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
     }
 }
 
 async function showHelp(message) {
-<<<<<<< HEAD
-    const helpText = `🤖 **Hausaufgaben Bot - Befehle:**
+    const helpText = `🤖 **Improved Hausaufgaben Bot - Befehle:**
 
 📝 \`.ha\` - Analysiert ha.jpg und zeigt Hausaufgaben an
 
@@ -541,45 +425,20 @@ async function showHelp(message) {
 **Verfügbare Fächer:**
 ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subject}`).join(', ')}
 
+**✨ NEUE Features:**
+• 🤝 Reagiert auf Commands von ALLEN Bots und Usern
+• ✨ Keine Message-Edits - nur neue Nachrichten
+• ⏱️ 2 Sekunden Cooldown zwischen Commands
+• 🎯 Bessere Fehlerbehandlung
+
 **Hinweise:**
-• ⏱️ 3 Sekunden Cooldown zwischen Commands
-• 🚫 Max. 3 gleichzeitige Commands
-• 🔄 Automatische Duplikat-Prevention`;
-=======
-    const helpText = `
-🤖 **Hausaufgaben Bot - Befehle:**
-
-📝 \`.ha\` - Analysiert ha.jpg (aus Discord Chat oder MEGA) und zeigt Hausaufgaben an
-
-📚 \`.lsg [fach] seite [nummer]\` - Zeigt Originalbild + Gemini Lösungen
-   Verfügbare Fächer:
-   • \`.lsg deutsch seite 1\`
-   • \`.lsg mathe seite 42\`
-   • \`.lsg english seite 15\`
-   • \`.lsg latein seite 8\`
-   • \`.lsg französisch seite 23\`
-
-❓ \`.help\` - Zeigt diese Hilfe an
-
-**Funktionen:**
-• \`.ha\`: OCR + KI Hausaufgaben-Analyse aus Bildern
-• \`.lsg\`: Zeigt zuerst Originalbild, dann Gemini-Lösung
-
-**Setup:**
-• Hausaufgaben: Lade ha.jpg in Discord hoch oder speichere in MEGA
-• Bücher: Speichere als \`fach_seite_nummer.jpg\` in MEGA
-• Unterstützte Fächer: Deutsch, Mathe, English, Latein, Französisch
-
-**Setup:**
-• GEMINI_API_KEY in .env setzen (Google AI Studio)
-• MEGA Login-Daten in .env eintragen
-`;
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
+• Funktioniert mit allen . Commands, auch von anderen Bots!
+• Saubere neue Nachrichten statt Bearbeitungen
+• Optimiert für Bot-zu-Bot Kommunikation`;
 
     await message.reply(helpText);
 }
 
-<<<<<<< HEAD
 // Formatierungsfunktionen
 function formatHomeworkResult(result) {
     let formatted = result;
@@ -613,18 +472,12 @@ function formatHomeworkHelpResult(fach, seite, response) {
 }
 
 // Bessere Fehlerbehandlung
-=======
-// Bessere Fehlerbehandlung für unbehandelte Rejections
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-<<<<<<< HEAD
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
 });
 
-=======
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 client.login(process.env.DISCORD_TOKEN);
