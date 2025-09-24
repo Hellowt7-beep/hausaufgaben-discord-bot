@@ -1,16 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-<<<<<<< HEAD
 import fetch from 'node-fetch';
 import { config } from 'dotenv';
 import { performOCRFromURL, performOCRWithRetry } from './ocr-service.js';
 
-=======
-import Tesseract from 'tesseract.js';
-import fetch from 'node-fetch';
-import { config } from 'dotenv';
-
-// Stelle sicher, dass .env geladen wird
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 config();
 
 export async function analyzeHomework(imageUrl) {
@@ -26,7 +18,6 @@ export async function analyzeHomework(imageUrl) {
         // GenAI zur Laufzeit initialisieren
         const genAI = new GoogleGenerativeAI(apiKey);
 
-<<<<<<< HEAD
         console.log('📥 Lade Hausaufgaben-Bild herunter...');
 
         // Bild herunterladen mit verbessertem Handling
@@ -63,27 +54,10 @@ export async function analyzeHomework(imageUrl) {
         }
 
         console.log('🤖 Sende an Gemini zur Analyse...');
-=======
-        // Bild herunterladen
-        const fetchResponse = await fetch(imageUrl);
-        const imageBuffer = await fetchResponse.arrayBuffer();
-
-        console.log('🔤 Führe OCR durch...');
-
-        // OCR mit Tesseract
-        const { data: { text } } = await Tesseract.recognize(imageBuffer, 'deu');
-
-        if (!text.trim()) {
-            throw new Error('Kein Text im Bild gefunden');
-        }
-
-        console.log('🤖 Sende an Gemini...');
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 
         // Text an Gemini zur Analyse senden
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-<<<<<<< HEAD
         const prompt = createHomeworkAnalysisPrompt(text);
 
         const result = await model.generateContent(prompt);
@@ -140,9 +114,6 @@ Bitte gib NUR den erkannten Text zurück, keine zusätzlichen Erklärungen.
 
 function createHomeworkAnalysisPrompt(text) {
     return `
-=======
-        const prompt = `
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
 Du bist ein Hausaufgaben-Assistent. Analysiere den folgenden Text aus einem Hausaufgabenbild und extrahiere die Hausaufgaben nach Fächern strukturiert.
 
 Erkannter Text:
@@ -150,7 +121,6 @@ ${text}
 
 Aufgabe:
 1. Identifiziere alle Hausaufgaben in dem Text
-<<<<<<< HEAD
 2. Strukturiere sie nach Fächern
 3. Gib eine klare, übersichtliche Übersicht zurück
 
@@ -215,28 +185,6 @@ export function getHomeworkAnalysisError(error) {
         return '❌ Gemini API Key nicht konfiguriert. Prüfe die .env Datei.';
     } else {
         return `❌ Unbekannter Fehler: ${error.message}`;
-=======
-2. Strukturiere sie nach Fächern (Deutsch, Mathe, English, etc.)
-3. Gib eine klare Übersicht zurück
-
-Format:
-**[FACH]:**
-- [Hausaufgabe 1]
-- [Hausaufgabe 2]
-
-**[ANDERES FACH]:**
-- [Hausaufgabe]
-
-Falls keine klaren Hausaufgaben erkennbar sind, gib den wichtigsten Inhalt strukturiert zurück.
-`;
-
-        const result = await model.generateContent(prompt);
-        const geminiResponse = await result.response;
-        return geminiResponse.text();
-
-    } catch (error) {
-        console.error('Fehler bei der Hausaufgaben-Analyse:', error);
-        throw new Error(`Analyse fehlgeschlagen: ${error.message}`);
->>>>>>> f005e76f4fed9a65868eab65bf74b483e4397b67
     }
 }
+
