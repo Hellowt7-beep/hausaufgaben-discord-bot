@@ -14,11 +14,12 @@ const PORT = process.env.PORT || 3000;
 // Health Check Endpoint
 app.get('/', (req, res) => {
     res.json({
-        status: 'Improved Bot is running!',
+        status: '✅ Fixed Bot is running!',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
         botStatus: client.user ? 'Connected' : 'Connecting...',
-        features: ['No Message Editing', 'Bot Command Reactions', 'All Dot Commands']
+        geminiModel: 'gemini-2.5-flash (UPDATED)',
+        features: ['🔥 NEW Gemini 2.5 Flash', 'No Message Editing', 'Bot Command Reactions', 'All Dot Commands']
     });
 });
 
@@ -40,8 +41,8 @@ const client = new Client({
     ]
 });
 
-// IMPROVED: Rate Limiting (aber keine Duplicate Prevention mehr)
-const userCooldowns = new Map(); // User ID -> last command timestamp
+// Rate Limiting
+const userCooldowns = new Map();
 const COOLDOWN_MS = 2000; // 2 Sekunden zwischen Commands
 
 // Fach-Emoji Mapping
@@ -69,34 +70,38 @@ const AVAILABLE_SUBJECTS = [
 
 // Bot Ready Event
 client.once('clientReady', () => {
-    console.log(`🤖 Improved Bot ist online als ${client.user.tag}!`);
+    console.log(`🤖 FIXED Bot ist online als ${client.user.tag}!`);
+    console.log(`🔥 Verwendet NEUE Gemini 2.5 Flash API!`);
     console.log(`📚 Bereit für Hausaufgaben-Hilfe!`);
     console.log(`🤝 Reagiert auf ALLE . Commands (auch von Bots)!`);
     console.log(`✨ KEINE Message-Edits - nur neue Nachrichten!`);
 
     // API Keys prüfen
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
         console.log('⚠️  WARNUNG: GEMINI_API_KEY nicht gesetzt!');
+    } else {
+        console.log('✅ Gemini API Key konfiguriert');
     }
+    
     if (!process.env.MEGA_EMAIL || !process.env.MEGA_PASSWORD) {
         console.log('⚠️  WARNUNG: MEGA Login-Daten nicht gesetzt!');
+    } else {
+        console.log('✅ MEGA Credentials konfiguriert');
     }
 
     // Cleanup Timer für Maps
     setInterval(() => {
         const now = Date.now();
-        // Cleanup user cooldowns (nach 5 Minuten)
         for (const [userId, timestamp] of userCooldowns) {
             if (now - timestamp > 300000) {
                 userCooldowns.delete(userId);
             }
         }
-    }, 60000); // Cleanup alle 60 Sekunden
+    }, 60000);
 });
 
 client.on('messageCreate', async (message) => {
-    // WICHTIGE ÄNDERUNG: Reagiere auf ALLE . Commands, auch von Bots!
-    // Aber ignoriere eigene Nachrichten
+    // Reagiere auf ALLE . Commands, auch von Bots!
     if (message.author.id === client.user.id) return;
 
     const userId = message.author.id;
@@ -112,7 +117,7 @@ client.on('messageCreate', async (message) => {
     // NEUE LOGIK: Reagiere auf ALLE . Commands (von Menschen UND Bots)
     if (!content.startsWith('.')) return;
 
-    // Rate Limiting (weniger streng als vorher)
+    // Rate Limiting
     const lastCommand = userCooldowns.get(userId);
     if (lastCommand && (now - lastCommand) < COOLDOWN_MS) {
         console.log(`⏳ User/Bot ${message.author.tag} in Cooldown, überspringe...`);
@@ -140,7 +145,7 @@ client.on('messageCreate', async (message) => {
     console.log(`🎯 Verarbeite Command: ${content} von ${message.author.tag} (${message.author.bot ? 'Bot' : 'User'})`);
 
     try {
-        // Command Router - KEINE Message-Edits, nur neue Nachrichten!
+        // Command Router
         if (content === '.ha') {
             await handleHomeworkCommand(message);
         }
@@ -163,11 +168,11 @@ client.on('messageCreate', async (message) => {
     } catch (error) {
         console.error('Fehler beim Verarbeiten der Nachricht:', error);
 
-        // Bessere Error Messages - NEUE Nachricht statt Edit
+        // Bessere Error Messages
         let errorMsg = '❌ Ein Fehler ist aufgetreten.';
 
         if (error.message.includes('API')) {
-            errorMsg += ' Problem mit der API. Versuche es in ein paar Minuten nochmal.';
+            errorMsg += ' Problem mit der Gemini API. Versuche es in ein paar Minuten nochmal.';
         } else if (error.message.includes('MEGA')) {
             errorMsg += ' Problem mit MEGA. Prüfe die Dateien.';
         } else if (error.message.includes('OCR')) {
@@ -179,8 +184,7 @@ client.on('messageCreate', async (message) => {
 });
 
 async function handleHomeworkCommand(message) {
-    // KEINE waitMsg mehr - direkt loslegen
-    await message.reply('⏳ Analysiere Hausaufgaben...');
+    await message.reply('⏳ Analysiere Hausaufgaben mit neuer Gemini 2.5 Flash API...');
 
     try {
         // Zuerst im Discord Chat suchen
@@ -197,7 +201,6 @@ async function handleHomeworkCommand(message) {
         let imageUrl = null;
 
         if (imageMessage) {
-            // Gefunden im Discord Chat
             const attachment = imageMessage.attachments.find(att =>
                 att.name?.toLowerCase().includes('ha') &&
                 (att.name?.toLowerCase().endsWith('.jpg') ||
@@ -220,8 +223,7 @@ async function handleHomeworkCommand(message) {
         const result = await analyzeHomework(imageUrl);
         const formattedResult = formatHomeworkResult(result);
 
-        // NEUE Nachricht statt Edit
-        await message.reply(`📝 **Hausaufgaben gefunden:**\n\n${formattedResult}`);
+        await message.reply(`📝 **Hausaufgaben gefunden (Gemini 2.5 Flash):**\n\n${formattedResult}`);
 
     } catch (error) {
         console.error('Fehler bei Hausaufgaben-Analyse:', error);
@@ -248,8 +250,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
     const fach = parts[0];
     const seiteNummer = parts[2];
 
-    // KEINE waitMsg - direkt Feedback geben
-    await message.reply('⏳ Lade Buchseite und generiere Lösung...');
+    await message.reply('⏳ Lade Buchseite und generiere Lösung mit Gemini 2.5 Flash...');
 
     try {
         const result = await solveProblemWithImage(fach, seiteNummer);
@@ -261,14 +262,14 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
             files: [imageAttachment]
         });
 
-        // 2. Dann die Lösung formatiert senden
+        // 2. Dann die Lösung senden
         const formattedSolution = formatSolutionResult(fach, seiteNummer, result.solution);
 
         if (formattedSolution.length > 2000) {
             const solutionBuffer = Buffer.from(formattedSolution, 'utf-8');
             const solutionAttachment = new AttachmentBuilder(solutionBuffer, { name: `loesung_${fach}_seite_${seiteNummer}.txt` });
             await message.reply({
-                content: `🤖 **Lösung:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n*Text ist zu lang, siehe Datei:*`,
+                content: `🤖 **Lösung (Gemini 2.5 Flash):** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n*Text ist zu lang, siehe Datei:*`,
                 files: [solutionAttachment]
             });
         } else {
@@ -289,12 +290,11 @@ async function handleAIChat(message, content) {
         return;
     }
 
-    // KEINE waitMsg - direkt Feedback
-    await message.reply('⏳ Denke nach...');
+    await message.reply('⏳ Denke mit Gemini 2.5 Flash nach...');
 
     try {
         const response = await chatWithAI(prompt);
-        const formattedResponse = `🤖 **Gemini Chat:**\n\n${response}`;
+        const formattedResponse = `🤖 **Gemini 2.5 Flash Chat:**\n\n${response}`;
 
         if (formattedResponse.length > 2000) {
             const responseBuffer = Buffer.from(formattedResponse, 'utf-8');
@@ -332,8 +332,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
     const seiteNummer = parts[2];
     const prompt = parts.slice(3).join(' ');
 
-    // KEINE waitMsg
-    await message.reply('⏳ Bereite Hilfe vor...');
+    await message.reply('⏳ Bereite Hilfe mit Gemini 2.5 Flash vor...');
 
     try {
         const response = await getHomeworkHelp(fach, seiteNummer, prompt);
@@ -374,7 +373,6 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
     const fach = parts[0];
     const seiteNummer = parts[2];
 
-    // KEINE waitMsg
     await message.reply('⏳ Suche Material-Dateien...');
 
     try {
@@ -408,7 +406,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 }
 
 async function showHelp(message) {
-    const helpText = `🤖 **Improved Hausaufgaben Bot - Befehle:**
+    const helpText = `🤖 **FIXED Hausaufgaben Bot - Befehle (Gemini 2.5 Flash):**
 
 📝 \`.ha\` - Analysiert ha.jpg und zeigt Hausaufgaben an
 
@@ -425,7 +423,8 @@ async function showHelp(message) {
 **Verfügbare Fächer:**
 ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subject}`).join(', ')}
 
-**✨ NEUE Features:**
+**🔥 NEUE Features (2025):**
+• ✅ Funktioniert mit neuer Gemini 2.5 Flash API
 • 🤝 Reagiert auf Commands von ALLEN Bots und Usern
 • ✨ Keine Message-Edits - nur neue Nachrichten
 • ⏱️ 2 Sekunden Cooldown zwischen Commands
@@ -434,7 +433,8 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 **Hinweise:**
 • Funktioniert mit allen . Commands, auch von anderen Bots!
 • Saubere neue Nachrichten statt Bearbeitungen
-• Optimiert für Bot-zu-Bot Kommunikation`;
+• Optimiert für Bot-zu-Bot Kommunikation
+• Verwendet die neueste Gemini 2.5 Flash API`;
 
     await message.reply(helpText);
 }
@@ -463,12 +463,12 @@ function getSubjectEmoji(subject) {
 
 function formatSolutionResult(fach, seite, solution) {
     const emoji = getSubjectEmoji(fach);
-    return `🤖 **Lösung:** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${solution}`;
+    return `🤖 **Lösung (Gemini 2.5 Flash):** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${solution}`;
 }
 
 function formatHomeworkHelpResult(fach, seite, response) {
     const emoji = getSubjectEmoji(fach);
-    return `🎓 **Hausaufgaben-Hilfe:** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${response}`;
+    return `🎓 **Hausaufgaben-Hilfe (Gemini 2.5 Flash):** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${response}`;
 }
 
 // Bessere Fehlerbehandlung
