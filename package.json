@@ -1,7 +1,7 @@
 {
-  "name": "discord-homework-bot-improved",
-  "version": "2.0.0",
-  "description": "Verbesserter Discord Bot für Hausaufgaben und Lösungen - Keine Message-Edits, Bot-Reaktionen",
+  "name": "discord-homework-bot-fixed",
+  "version": "2.1.0",
+  "description": "Reparierter Discord Bot für Hausaufgaben - Neue Gemini Models 2025",
   "main": "src/bot.js",
   "type": "module",
   "scripts": {
@@ -25,8 +25,8 @@
     "bot",
     "hausaufgaben",
     "ocr",
-    "no-editing",
-    "bot-reactions"
+    "gemini",
+    "fixed"
   ],
   "author": "",
   "license": "MIT",
@@ -35,4 +35,3 @@
     "npm": ">=8.0.0"
   }
 }
-
