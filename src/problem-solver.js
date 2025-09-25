@@ -287,3 +287,84 @@ Falls keine klaren Aufgaben erkennbar sind, fasse den Inhalt zusammen und gib Le
     }
 }
 
+export async function getMaterialWithImages(fach, material) {
+    try {
+        // API Key zur Laufzeit laden
+        const apiKey = process.env.GEMINI_API_KEY;
+        console.log('🔑 API Key für Material:', apiKey ? `JA (${apiKey.substring(0, 20)}...)` : 'NEIN');
+
+        if (!apiKey || apiKey === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+            throw new Error('GEMINI_API_KEY nicht gesetzt! Bitte in .env Datei eintragen.');
+        }
+
+        // GenAI zur Laufzeit initialisieren
+        const genAI = new GoogleGenerativeAI(apiKey);
+
+        // Finde das entsprechende Material in MEGA
+        const storage = await connectToMega();
+        const files = storage.files;
+
+        const foundFile = Object.values(files).find(file => {
+            const name = file.name?.toLowerCase();
+            if (!name) return false;
+
+            const fachLower = fach.toLowerCase();
+            const materialLower = material.toLowerCase();
+
+            return name.includes(fachLower) && name.includes(materialLower);
+        });
+
+        if (!foundFile) {
+            throw new Error(`Material nicht gefunden für: ${fach} - ${material}`);
+        }
+
+        // Lade die Datei als Buffer herunter
+        console.log('📥 Lade Material herunter...');
+        const imageBuffer = await foundFile.downloadBuffer();
+
+        // Führe OCR durch für die Textanalyse
+        console.log('🔤 Führe OCR durch...');
+        const Tesseract = await import('tesseract.js');
+        const { data: { text } } = await Tesseract.default.recognize(imageBuffer, 'deu+eng');
+
+        if (!text.trim()) {
+            throw new Error('Kein Text in der Datei gefunden');
+        }
+
+        console.log('🤖 Sende an Gemini...');
+
+        // Sende an Gemini zur Materialanalyse
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+Du bist ein hilfreicher Lern-Assistent. Analysiere das folgende Material aus dem Fach "${fach}" und bereite es für das Lernen auf.
+
+Material: ${material}
+Text:
+${text}
+
+Aufgabe:
+1. Fasse den Inhalt strukturiert zusammen
+2. Erkläre wichtige Konzepte verständlich
+3. Erstelle Lernhilfen und Merksätze
+4. Bei Formeln: Erkläre deren Anwendung
+5. Bei Texten: Gib eine Zusammenfassung
+
+Format deine Antwort strukturiert und lernfreundlich.
+`;
+
+        const result = await model.generateContent(prompt);
+        const geminiResponse = await result.response;
+
+        // Gib sowohl das Bild als auch die Analyse zurück
+        return {
+            imageBuffer: imageBuffer,
+            fileName: foundFile.name || `${fach}_${material}.jpg`,
+            analysis: geminiResponse.text()
+        };
+
+    } catch (error) {
+        throw error;
+    }
+}
+
