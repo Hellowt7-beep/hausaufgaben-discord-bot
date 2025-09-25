@@ -7,7 +7,7 @@ config();
 
 let megaStorage = null;
 
-async function connectToMega() {
+export async function connectToMega() {
     if (megaStorage) return megaStorage;
 
     try {
@@ -26,7 +26,7 @@ async function connectToMega() {
     }
 }
 
-async function findBookPage(fach, seiteNummer) {
+export async function findBookPage(fach, seiteNummer) {
     const storage = await connectToMega();
 
     console.log(`🔍 Suche nach: ${fach} Seite ${seiteNummer}`);
@@ -105,7 +105,7 @@ Stelle sicher, dass die Datei in MEGA hochgeladen ist.`);
     return foundFile;
 }
 
-async function downloadAndProcessImage(file) {
+export async function downloadAndProcessImage(file) {
     try {
         // Datei als Buffer herunterladen
         const data = await file.downloadBuffer();
@@ -286,3 +286,4 @@ Falls keine klaren Aufgaben erkennbar sind, fasse den Inhalt zusammen und gib Le
         throw error;
     }
 }
+
