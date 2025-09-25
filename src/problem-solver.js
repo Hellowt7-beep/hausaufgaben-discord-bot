@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Storage } from 'megajs';
 import { config } from 'dotenv';
+import Tesseract from 'tesseract.js';
 
 // Stelle sicher, dass .env geladen wird
 config();
@@ -110,9 +111,8 @@ export async function downloadAndProcessImage(file) {
         // Datei als Buffer herunterladen
         const data = await file.downloadBuffer();
 
-        // OCR auf dem Bild - dynamischer Import
-        const Tesseract = await import('tesseract.js');
-        const { data: { text } } = await Tesseract.default.recognize(data, 'deu+eng');
+        // OCR auf dem Bild
+        const { data: { text } } = await Tesseract.recognize(data, 'deu+eng');
 
         if (!text.trim()) {
             throw new Error('Kein Text in der Datei gefunden');
@@ -235,8 +235,7 @@ export async function solveProblemWithImage(fach, seiteNummer) {
 
         // Führe OCR durch für die Textanalyse
         console.log('🔤 Führe OCR durch...');
-        const Tesseract = await import('tesseract.js');
-        const { data: { text } } = await Tesseract.default.recognize(imageBuffer, 'deu+eng');
+        const { data: { text } } = await Tesseract.recognize(imageBuffer, 'deu+eng');
 
         if (!text.trim()) {
             throw new Error('Kein Text in der Datei gefunden');
@@ -324,8 +323,7 @@ export async function getMaterialWithImages(fach, material) {
 
         // Führe OCR durch für die Textanalyse
         console.log('🔤 Führe OCR durch...');
-        const Tesseract = await import('tesseract.js');
-        const { data: { text } } = await Tesseract.default.recognize(imageBuffer, 'deu+eng');
+        const { data: { text } } = await Tesseract.recognize(imageBuffer, 'deu+eng');
 
         if (!text.trim()) {
             throw new Error('Kein Text in der Datei gefunden');
@@ -367,4 +365,3 @@ Format deine Antwort strukturiert und lernfreundlich.
         throw error;
     }
 }
-
