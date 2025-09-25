@@ -11,7 +11,7 @@ export async function analyzeHomework(imageUrl) {
         const apiKey = process.env.GEMINI_API_KEY;
         console.log('🔑 API Key geladen:', apiKey ? `JA (${apiKey.substring(0, 20)}...)` : 'NEIN');
 
-        if (!apiKey || apiKey === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+        if (!apiKey || apiKey === 'your_gemini_api_key_here') {
             throw new Error('GEMINI_API_KEY nicht gesetzt! Bitte in .env Datei eintragen.');
         }
 
@@ -53,17 +53,17 @@ export async function analyzeHomework(imageUrl) {
             throw new Error('Kein Text im Bild gefunden - versuche bessere Bildqualität');
         }
 
-        console.log('🤖 Sende an Gemini zur Analyse...');
+        console.log('🤖 Sende an Gemini 2.5 Flash zur Analyse...');
 
-        // Text an Gemini zur Analyse senden
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Text an Gemini zur Analyse senden - KORRIGIERTER MODEL NAME
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = createHomeworkAnalysisPrompt(text);
 
         const result = await model.generateContent(prompt);
         const geminiResponse = await result.response;
 
-        console.log('✅ Hausaufgaben-Analyse erfolgreich abgeschlossen');
+        console.log('✅ Hausaufgaben-Analyse mit Gemini 2.5 Flash erfolgreich abgeschlossen');
         return geminiResponse.text();
 
     } catch (error) {
@@ -75,9 +75,10 @@ export async function analyzeHomework(imageUrl) {
 // Fallback: Gemini Vision für direkte Bildanalyse
 async function analyzeImageWithGeminiVision(imageBuffer, genAI) {
     try {
-        console.log('👁️ Verwende Gemini Vision für Bildanalyse...');
+        console.log('👁️ Verwende Gemini 2.5 Flash Vision für Bildanalyse...');
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // KORRIGIERTER MODEL NAME
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         // Konvertiere Bild zu Base64
         const base64Image = Buffer.from(imageBuffer).toString('base64');
@@ -103,11 +104,11 @@ Bitte gib NUR den erkannten Text zurück, keine zusätzlichen Erklärungen.
         const result = await model.generateContent([prompt, imagePart]);
         const response = await result.response;
 
-        console.log('✅ Gemini Vision OCR erfolgreich');
+        console.log('✅ Gemini 2.5 Flash Vision OCR erfolgreich');
         return response.text();
 
     } catch (visionError) {
-        console.error('❌ Gemini Vision OCR fehlgeschlagen:', visionError);
+        console.error('❌ Gemini 2.5 Flash Vision OCR fehlgeschlagen:', visionError);
         throw new Error('Sowohl Standard-OCR als auch Gemini Vision fehlgeschlagen');
     }
 }
@@ -187,4 +188,3 @@ export function getHomeworkAnalysisError(error) {
         return `❌ Unbekannter Fehler: ${error.message}`;
     }
 }
-
