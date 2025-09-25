@@ -163,7 +163,7 @@ export async function solveProblem(fach, seiteNummer) {
         const apiKey = process.env.GEMINI_API_KEY;
         console.log('🔑 API Key für Lösungen:', apiKey ? `JA (${apiKey.substring(0, 20)}...)` : 'NEIN');
 
-        if (!apiKey || apiKey === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+        if (!apiKey || apiKey === 'your_gemini_api_key_here') {
             throw new Error('GEMINI_API_KEY nicht gesetzt! Bitte in .env Datei eintragen.');
         }
 
@@ -176,8 +176,8 @@ export async function solveProblem(fach, seiteNummer) {
         // Lade die Datei herunter und führe OCR durch
         const extractedText = await downloadAndProcessImage(file);
 
-        // Sende an Gemini zur Lösungsfindung
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Sende an Gemini zur Lösungsfindung - KORRIGIERTER MODEL NAME
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
 Du bist ein sehr hilfsbereiter Nachhilfe-Assistent. Analysiere den folgenden Text aus einem Schulbuch für das Fach "${fach}" und löse alle Aufgaben, die du findest.
@@ -219,7 +219,7 @@ export async function solveProblemWithImage(fach, seiteNummer) {
         const apiKey = process.env.GEMINI_API_KEY;
         console.log('🔑 API Key für Lösungen:', apiKey ? `JA (${apiKey.substring(0, 20)}...)` : 'NEIN');
 
-        if (!apiKey || apiKey === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+        if (!apiKey || apiKey === 'your_gemini_api_key_here') {
             throw new Error('GEMINI_API_KEY nicht gesetzt! Bitte in .env Datei eintragen.');
         }
 
@@ -241,10 +241,10 @@ export async function solveProblemWithImage(fach, seiteNummer) {
             throw new Error('Kein Text in der Datei gefunden');
         }
 
-        console.log('🤖 Sende an Gemini...');
+        console.log('🤖 Sende an Gemini 2.5 Flash...');
 
-        // Sende an Gemini zur Lösungsfindung
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Sende an Gemini zur Lösungsfindung - KORRIGIERTER MODEL NAME
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
 Du bist ein sehr hilfsbereiter Nachhilfe-Assistent. Analysiere den folgenden Text aus einem Schulbuch für das Fach "${fach}" und löse alle Aufgaben, die du findest.
@@ -292,7 +292,7 @@ export async function getMaterialWithImages(fach, material) {
         const apiKey = process.env.GEMINI_API_KEY;
         console.log('🔑 API Key für Material:', apiKey ? `JA (${apiKey.substring(0, 20)}...)` : 'NEIN');
 
-        if (!apiKey || apiKey === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+        if (!apiKey || apiKey === 'your_gemini_api_key_here') {
             throw new Error('GEMINI_API_KEY nicht gesetzt! Bitte in .env Datei eintragen.');
         }
 
@@ -303,7 +303,7 @@ export async function getMaterialWithImages(fach, material) {
         const storage = await connectToMega();
         const files = storage.files;
 
-        const foundFile = Object.values(files).find(file => {
+        const foundFiles = Object.values(files).filter(file => {
             const name = file.name?.toLowerCase();
             if (!name) return false;
 
@@ -313,28 +313,32 @@ export async function getMaterialWithImages(fach, material) {
             return name.includes(fachLower) && name.includes(materialLower);
         });
 
-        if (!foundFile) {
+        if (foundFiles.length === 0) {
             throw new Error(`Material nicht gefunden für: ${fach} - ${material}`);
         }
 
-        // Lade die Datei als Buffer herunter
-        console.log('📥 Lade Material herunter...');
-        const imageBuffer = await foundFile.downloadBuffer();
+        console.log(`📚 ${foundFiles.length} Material-Dateien gefunden`);
 
-        // Führe OCR durch für die Textanalyse
-        console.log('🔤 Führe OCR durch...');
-        const text = await performOCR(imageBuffer);
+        // Verarbeite alle gefundenen Dateien
+        const materialResults = [];
 
-        if (!text.trim()) {
-            throw new Error('Kein Text in der Datei gefunden');
-        }
+        for (const file of foundFiles) {
+            try {
+                // Lade die Datei als Buffer herunter
+                console.log(`📥 Lade Material: ${file.name}...`);
+                const imageBuffer = await file.downloadBuffer();
 
-        console.log('🤖 Sende an Gemini...');
+                // Führe OCR durch für die Textanalyse
+                console.log('🔤 Führe OCR durch...');
+                const text = await performOCR(imageBuffer);
 
-        // Sende an Gemini zur Materialanalyse
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                if (text.trim()) {
+                    console.log('🤖 Sende an Gemini 2.5 Flash...');
 
-        const prompt = `
+                    // Sende an Gemini zur Materialanalyse - KORRIGIERTER MODEL NAME
+                    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                    const prompt = `
 Du bist ein hilfreicher Lern-Assistent. Analysiere das folgende Material aus dem Fach "${fach}" und bereite es für das Lernen auf.
 
 Material: ${material}
@@ -351,15 +355,29 @@ Aufgabe:
 Format deine Antwort strukturiert und lernfreundlich.
 `;
 
-        const result = await model.generateContent(prompt);
-        const geminiResponse = await result.response;
+                    const result = await model.generateContent(prompt);
+                    const geminiResponse = await result.response;
 
-        // Gib sowohl das Bild als auch die Analyse zurück
-        return {
-            imageBuffer: imageBuffer,
-            fileName: foundFile.name || `${fach}_${material}.jpg`,
-            analysis: geminiResponse.text()
-        };
+                    materialResults.push({
+                        imageBuffer: imageBuffer,
+                        fileName: file.name || `${fach}_${material}.jpg`,
+                        analysis: geminiResponse.text()
+                    });
+                } else {
+                    // Auch ohne OCR Text das Bild hinzufügen
+                    materialResults.push({
+                        imageBuffer: imageBuffer,
+                        fileName: file.name || `${fach}_${material}.jpg`,
+                        analysis: `Material-Datei: ${file.name}\n(Kein Text erkannt - nur Bild verfügbar)`
+                    });
+                }
+            } catch (fileError) {
+                console.log(`⚠️ Fehler bei Datei ${file.name}:`, fileError.message);
+                continue;
+            }
+        }
+
+        return materialResults;
 
     } catch (error) {
         throw error;
