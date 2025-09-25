@@ -10,7 +10,7 @@ function initializeGenAI() {
     if (genAI) return genAI;
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'YOUR_NEW_GEMINI_API_KEY_HERE') {
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
         throw new Error('GEMINI_API_KEY nicht gesetzt! Bitte in .env Datei eintragen.');
     }
 
@@ -21,7 +21,8 @@ function initializeGenAI() {
 export async function chatWithAI(prompt) {
     try {
         const ai = initializeGenAI();
-        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // KORRIGIERTER MODEL NAME
+        const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const enhancedPrompt = `
 Du bist ein hilfsbereiter und geduldiger Nachhilfelehrer. Beantworte die folgende Frage ausführlich und verständlich:
@@ -52,7 +53,7 @@ Falls nötig, füge zusätzliche Abschnitte hinzu wie:
 - 💪 Übungstipps
 `;
 
-        console.log('🤖 Sende Frage an Gemini...');
+        console.log('🤖 Sende Frage an Gemini 2.5 Flash...');
         const result = await model.generateContent(enhancedPrompt);
         const response = await result.response;
 
@@ -77,7 +78,8 @@ Falls nötig, füge zusätzliche Abschnitte hinzu wie:
 export async function getHomeworkHelp(fach, seiteNummer, userPrompt) {
     try {
         const ai = initializeGenAI();
-        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // KORRIGIERTER MODEL NAME
+        const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         // Versuche, das Buch zu finden und den Text zu extrahieren
         let pageText = '';
@@ -94,7 +96,7 @@ export async function getHomeworkHelp(fach, seiteNummer, userPrompt) {
 
         const helpPrompt = createHomeworkHelpPrompt(fach, seiteNummer, userPrompt, pageText, hasPageText);
 
-        console.log('🎓 Generiere Hausaufgaben-Hilfe...');
+        console.log('🎓 Generiere Hausaufgaben-Hilfe mit Gemini 2.5 Flash...');
         const result = await model.generateContent(helpPrompt);
         const response = await result.response;
 
