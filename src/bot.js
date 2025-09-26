@@ -82,7 +82,7 @@ client.once('clientReady', () => {
     } else {
         console.log('✅ Gemini API Key konfiguriert');
     }
-    
+
     if (!process.env.MEGA_EMAIL || !process.env.MEGA_PASSWORD) {
         console.log('⚠️  WARNUNG: MEGA Login-Daten nicht gesetzt!');
     } else {
@@ -169,10 +169,10 @@ client.on('messageCreate', async (message) => {
         console.error('Fehler beim Verarbeiten der Nachricht:', error);
 
         // Bessere Error Messages
-        let errorMsg = '❌ Ein Fehler ist aufgetreten.';
+        let errorMsg = 'Ein Fehler ist aufgetreten.';
 
         if (error.message.includes('API')) {
-            errorMsg += ' Problem mit der Gemini API. Versuche es in ein paar Minuten nochmal.';
+            errorMsg += ' Problem mit der API. Versuche es in ein paar Minuten nochmal.';
         } else if (error.message.includes('MEGA')) {
             errorMsg += ' Problem mit MEGA. Prüfe die Dateien.';
         } else if (error.message.includes('OCR')) {
@@ -184,7 +184,7 @@ client.on('messageCreate', async (message) => {
 });
 
 async function handleHomeworkCommand(message) {
-    await message.reply('⏳ Analysiere Hausaufgaben mit neuer Gemini 2.5 Flash API...');
+    await message.reply('Bitte warten, ich gebe dir gleich die Hausaufgaben');
 
     try {
         // Zuerst im Discord Chat suchen
@@ -215,7 +215,7 @@ async function handleHomeworkCommand(message) {
                 const megaImageUrl = await findHomeworkInMega();
                 imageUrl = megaImageUrl;
             } catch (megaError) {
-                await message.reply('❌ Keine ha.jpg gefunden! Lade ein Bild mit "ha" im Namen in Discord hoch oder speichere ha.jpg in MEGA.');
+                await message.reply('Keine ha.jpg gefunden! Lade ein Bild mit "ha" im Namen in Discord hoch oder speichere ha.jpg in MEGA.');
                 return;
             }
         }
@@ -223,11 +223,11 @@ async function handleHomeworkCommand(message) {
         const result = await analyzeHomework(imageUrl);
         const formattedResult = formatHomeworkResult(result);
 
-        await message.reply(`📝 **Hausaufgaben gefunden (Gemini 2.5 Flash):**\n\n${formattedResult}`);
+        await message.reply(`**Hausaufgaben gefunden:**\n\n${formattedResult}`);
 
     } catch (error) {
         console.error('Fehler bei Hausaufgaben-Analyse:', error);
-        await message.reply(`❌ Fehler beim Analysieren der Hausaufgaben: ${error.message}`);
+        await message.reply(`Fehler beim Analysieren der Hausaufgaben: ${error.message}`);
     }
 }
 
@@ -235,22 +235,22 @@ async function handleSolutionCommand(message, content) {
     const parts = content.split(' ').slice(1);
 
     if (parts.length < 3) {
-        await message.reply(`❌ Format: \`.lsg [fach] seite [nummer]\`
+        await message.reply(`Format: .lsg [fach] seite [nummer]
 
-**Verfügbare Fächer:**
-${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subject}`).join(', ')}
+Verfügbare Fächer:
+${AVAILABLE_SUBJECTS.map(subject => `${subject}`).join(', ')}
 
-**Beispiele:**
-• \`.lsg deutsch seite 1\`
-• \`.lsg mathe seite 42\`
-• \`.lsg latein seite 15\``);
+Beispiele:
+.lsg deutsch seite 1
+.lsg mathe seite 42
+.lsg latein seite 15`);
         return;
     }
 
     const fach = parts[0];
     const seiteNummer = parts[2];
 
-    await message.reply('⏳ Lade Buchseite und generiere Lösung mit Gemini 2.5 Flash...');
+    await message.reply('Bitte warten, ich schaue mir die Seite an');
 
     try {
         const result = await solveProblemWithImage(fach, seiteNummer);
@@ -258,7 +258,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
         // 1. Erst das Originalbild senden
         const imageAttachment = new AttachmentBuilder(result.imageBuffer, { name: result.fileName });
         await message.reply({
-            content: `📄 **Originalbild:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**`,
+            content: `**Originalbild:** ${fach} Seite ${seiteNummer}`,
             files: [imageAttachment]
         });
 
@@ -269,7 +269,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
             const solutionBuffer = Buffer.from(formattedSolution, 'utf-8');
             const solutionAttachment = new AttachmentBuilder(solutionBuffer, { name: `loesung_${fach}_seite_${seiteNummer}.txt` });
             await message.reply({
-                content: `🤖 **Lösung (Gemini 2.5 Flash):** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n*Text ist zu lang, siehe Datei:*`,
+                content: `**Lösung:** ${fach} Seite ${seiteNummer}`,
                 files: [solutionAttachment]
             });
         } else {
@@ -278,7 +278,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 
     } catch (error) {
         console.error('Fehler bei Lösungssuche:', error);
-        await message.reply(`❌ Fehler: ${error.message}`);
+        await message.reply(`Fehler: ${error.message}`);
     }
 }
 
@@ -286,21 +286,20 @@ async function handleAIChat(message, content) {
     const prompt = content.slice(4).trim();
 
     if (!prompt) {
-        await message.reply('❌ Format: `.ai [deine frage]`\nBeispiel: `.ai Erkläre mir Photosynthese`');
+        await message.reply('Format: .ai [deine frage]\nBeispiel: .ai Erkläre mir Photosynthese');
         return;
     }
 
-    await message.reply('⏳ Denke mit Gemini 2.5 Flash nach...');
+
 
     try {
         const response = await chatWithAI(prompt);
-        const formattedResponse = `🤖 **Gemini 2.5 Flash Chat:**\n\n${response}`;
+        const formattedResponse = response;
 
         if (formattedResponse.length > 2000) {
             const responseBuffer = Buffer.from(formattedResponse, 'utf-8');
             const responseAttachment = new AttachmentBuilder(responseBuffer, { name: 'ai_antwort.txt' });
             await message.reply({
-                content: '🤖 **Antwort zu lang, siehe Datei:**',
                 files: [responseAttachment]
             });
         } else {
@@ -309,7 +308,7 @@ async function handleAIChat(message, content) {
 
     } catch (error) {
         console.error('Fehler bei AI Chat:', error);
-        await message.reply(`❌ Fehler beim Chat: ${error.message}`);
+        await message.reply(`Fehler beim Chat: ${error.message}`);
     }
 }
 
@@ -317,14 +316,14 @@ async function handleHomeworkHelp(message, content) {
     const parts = content.split(' ').slice(1);
 
     if (parts.length < 4) {
-        await message.reply(`❌ Format: \`.a [fach] seite [nummer] [prompt]\`
+        await message.reply(`Format: .a [fach] seite [nummer] [prompt]
 
-**Verfügbare Fächer:**
-${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subject}`).join(', ')}
+Verfügbare Fächer:
+${AVAILABLE_SUBJECTS.map(subject => `${subject}`).join(', ')}
 
-**Beispiele:**
-• \`.a deutsch seite 1 erkläre mir die aufgabe\`
-• \`.a mathe seite 42 wie löse ich gleichungen\``);
+Beispiele:
+.a deutsch seite 1 erkläre mir die aufgabe
+.a mathe seite 42 wie löse ich gleichungen`);
         return;
     }
 
@@ -332,7 +331,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
     const seiteNummer = parts[2];
     const prompt = parts.slice(3).join(' ');
 
-    await message.reply('⏳ Bereite Hilfe mit Gemini 2.5 Flash vor...');
+    await message.reply('Bitte warten');
 
     try {
         const response = await getHomeworkHelp(fach, seiteNummer, prompt);
@@ -342,7 +341,6 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
             const responseBuffer = Buffer.from(formattedResponse, 'utf-8');
             const responseAttachment = new AttachmentBuilder(responseBuffer, { name: `hilfe_${fach}_seite_${seiteNummer}.txt` });
             await message.reply({
-                content: `🎓 **Hausaufgaben-Hilfe zu lang, siehe Datei:**`,
                 files: [responseAttachment]
             });
         } else {
@@ -351,7 +349,7 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 
     } catch (error) {
         console.error('Fehler bei Hausaufgaben-Hilfe:', error);
-        await message.reply(`❌ Fehler: ${error.message}`);
+        await message.reply(`Fehler: ${error.message}`);
     }
 }
 
@@ -359,38 +357,38 @@ async function handleMaterialCommand(message, content) {
     const parts = content.split(' ').slice(1);
 
     if (parts.length < 3) {
-        await message.reply(`❌ Format: \`.material [fach] seite [nummer]\`
+        await message.reply(`Format: .material [fach] seite [nummer]
 
-**Verfügbare Fächer:**
-${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subject}`).join(', ')}
+Verfügbare Fächer:
+${AVAILABLE_SUBJECTS.map(subject => `${subject}`).join(', ')}
 
-**Beispiele:**
-• \`.material englisch seite 11\`
-• \`.material mathe seite 42\``);
+Beispiele:
+.material englisch seite 11
+.material mathe seite 42`);
         return;
     }
 
     const fach = parts[0];
     const seiteNummer = parts[2];
 
-    await message.reply('⏳ Suche Material-Dateien...');
+    await message.reply('Bitte warten');
 
     try {
         const materialImages = await getMaterialWithImages(fach, seiteNummer);
 
         if (materialImages.length === 0) {
-            await message.reply(`❌ Keine Material-Dateien gefunden für: ${fach} Seite ${seiteNummer}`);
+            await message.reply(`Keine Material-Dateien gefunden für: ${fach} Seite ${seiteNummer}`);
             return;
         }
 
-        await message.reply(`📚 **Material gefunden:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n${materialImages.length} Datei(en) werden gesendet...`);
+        await message.reply(`**Material gefunden:** ${fach} Seite ${seiteNummer}\n${materialImages.length} Datei(en) werden gesendet...`);
 
         for (let i = 0; i < materialImages.length; i++) {
             const material = materialImages[i];
             const imageAttachment = new AttachmentBuilder(material.imageBuffer, { name: material.fileName });
 
             await message.reply({
-                content: `📄 **Material ${i + 1}/${materialImages.length}:** ${getSubjectEmoji(fach)} **${fach} Seite ${seiteNummer}**\n\`${material.fileName}\``,
+                content: `**Material ${i + 1}/${materialImages.length}:** ${fach} Seite ${seiteNummer}\n${material.fileName}`,
                 files: [imageAttachment]
             });
 
@@ -401,40 +399,32 @@ ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subj
 
     } catch (error) {
         console.error('Fehler bei Material-Suche:', error);
-        await message.reply(`❌ Fehler: ${error.message}`);
+        await message.reply(`Fehler: ${error.message}`);
     }
 }
 
 async function showHelp(message) {
-    const helpText = `🤖 **FIXED Hausaufgaben Bot - Befehle (Gemini 2.5 Flash):**
+    const helpText = `**Hausaufgaben Bot - Befehle:**
 
-📝 \`.ha\` - Analysiert ha.jpg und zeigt Hausaufgaben an
+.ha - Analysiert ha.jpg und zeigt Hausaufgaben an
 
-📚 \`.lsg [fach] seite [nummer]\` - Zeigt Originalbild + Gemini Lösungen
+.lsg [fach] seite [nummer] - Zeigt Originalbild + Lösungen
 
-🤖 \`.ai [frage]\` - Chat mit Gemini KI
+.ai [frage] - Chat mit KI
 
-🎓 \`.a [fach] seite [nummer] [prompt]\` - Hausaufgaben-Hilfe mit Tipps
+.a [fach] seite [nummer] [prompt] - Hausaufgaben-Hilfe mit Tipps
 
-📄 \`.material [fach] seite [nummer]\` - Zeigt alle Material-Dateien
+.material [fach] seite [nummer] - Zeigt alle Material-Dateien
 
-❓ \`.help\` - Zeigt diese Hilfe an
+.help - Zeigt diese Hilfe an
 
 **Verfügbare Fächer:**
 ${AVAILABLE_SUBJECTS.map(subject => `${SUBJECT_EMOJIS[subject] || '📚'} ${subject}`).join(', ')}
 
-**🔥 NEUE Features (2025):**
-• ✅ Funktioniert mit neuer Gemini 2.5 Flash API
-• 🤝 Reagiert auf Commands von ALLEN Bots und Usern
-• ✨ Keine Message-Edits - nur neue Nachrichten
-• ⏱️ 2 Sekunden Cooldown zwischen Commands
-• 🎯 Bessere Fehlerbehandlung
-
-**Hinweise:**
-• Funktioniert mit allen . Commands, auch von anderen Bots!
-• Saubere neue Nachrichten statt Bearbeitungen
-• Optimiert für Bot-zu-Bot Kommunikation
-• Verwendet die neueste Gemini 2.5 Flash API`;
+**Features:**
+- Funktioniert mit allen Commands von Bots und Usern
+- 2 Sekunden Cooldown zwischen Commands
+- Bot-zu-Bot Kommunikation optimiert`;
 
     await message.reply(helpText);
 }
@@ -463,12 +453,12 @@ function getSubjectEmoji(subject) {
 
 function formatSolutionResult(fach, seite, solution) {
     const emoji = getSubjectEmoji(fach);
-    return `🤖 **Lösung (Gemini 2.5 Flash):** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${solution}`;
+    return `**Lösung:** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${solution}`;
 }
 
 function formatHomeworkHelpResult(fach, seite, response) {
     const emoji = getSubjectEmoji(fach);
-    return `🎓 **Hausaufgaben-Hilfe (Gemini 2.5 Flash):** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${response}`;
+    return `**Hausaufgaben-Hilfe:** ${emoji} **${fach.charAt(0).toUpperCase() + fach.slice(1)} Seite ${seite}**\n\n${response}`;
 }
 
 // Bessere Fehlerbehandlung
@@ -481,3 +471,4 @@ process.on('uncaughtException', (error) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
