@@ -170,21 +170,21 @@ Regeln:
 - Wenn ein Fach nicht erkannt wird, verwende "**Weitere Aufgaben:**"
 
 Falls der Text unleserlich ist, antworte mit:
-"❌ Text nicht klar erkennbar. Bitte verwende ein schärferes Bild oder gib die Hausaufgaben manuell mit .ai ein."
+"Text nicht klar erkennbar. Bitte verwende ein schärferes Bild oder gib die Hausaufgaben manuell mit .ai ein."
 `;
 }
 
 // Hilfsfunktion für bessere Fehlermeldungen
 export function getHomeworkAnalysisError(error) {
     if (error.message.includes('API')) {
-        return '❌ Problem mit der Gemini API. Versuche es in ein paar Minuten nochmal.';
+        return 'Problem mit der API. Versuche es in ein paar Minuten nochmal.';
     } else if (error.message.includes('OCR')) {
-        return '❌ Problem mit der Texterkennung. Versuche ein schärferes Bild oder verwende .ai für manuelle Eingabe.';
+        return 'Problem mit der Texterkennung. Versuche ein schärferes Bild oder verwende .ai für manuelle Eingabe.';
     } else if (error.message.includes('fetch')) {
-        return '❌ Problem beim Laden des Bildes. Prüfe die Internetverbindung.';
+        return 'Problem beim Laden des Bildes. Prüfe die Internetverbindung.';
     } else if (error.message.includes('GEMINI_API_KEY')) {
-        return '❌ Gemini API Key nicht konfiguriert. Prüfe die .env Datei.';
+        return 'API Key nicht konfiguriert. Prüfe die .env Datei.';
     } else {
-        return `❌ Unbekannter Fehler: ${error.message}`;
+        return `Unbekannter Fehler: ${error.message}`;
     }
 }
